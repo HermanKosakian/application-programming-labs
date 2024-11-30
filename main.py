@@ -1,69 +1,28 @@
-import argparse
-import re
-
-from collections import Counter
+import os
 
 
-def get()-> str:
-    """
-    пользователь вводит название файла
-    :return:название файла
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filename', type=str, help='your name file')
-    args = parser.parse_args()
-    return args.filename
-
-
-def openfile(file_name: str) -> str:
-    """
-    берёт данные из файла
-    :param file_name: название файла
-    :return: данные из файла
-    """
-    try:
-        with open(file_name, "r", encoding="utf-8") as file:
-            text = file.read()
-        return text
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Ошибка: файл '{file_name}' не найден.")
-
-
-def border(text:str)->list[str]:
-    """
-    разделяет данные из файла и записывает имена
-     в names
-    :param text:данные в виде строки
-    :return:имена из анкет
-    """
-    pattern = r'Имя:\s*([а-яА-ЯёЁ]+)'
-    names=re.findall(pattern,text)
-    return names
-
-
-def popular(name:list):
-    """
-    находит самое частое имя
-    :param name:список имён
-    :return:самое частое имя
-    """
-    counter=Counter(name)
-    return counter.most_common(1)
+from histog import *
+from input import value_input
+from invert import *
 
 
 def main():
-    """
-    вызываем функции поочерёдно
-    :return: none
-    """
+    path_im=value_input().path_image
+    path_new_im=value_input().path_new_image
     try:
-        file_name=get()
-        text= openfile(file_name)
-        name=border(text)
-        counter1=popular(name)
-        print(counter1)
+        if not os.path.exists(path_im):
+            raise FileNotFoundError(f"Файл не найден: {path_im}")
+        img = cv2.imread(path_im)
+        if img is None:
+            raise ValueError("Не удалось загрузить изображение. Проверьте путь.")
+        proportions(path_im)
+        hist_r,hist_g,hist_b=histogram_creation(img)
+        histogram_drawing(hist_r,hist_g,hist_b)
+        new_im=invert_image(img)
+        save_invert(new_im, path_new_im)
+        image_output(img,new_im)
     except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        print(f'Error: {e}')
 
 
 if __name__ == "__main__":
